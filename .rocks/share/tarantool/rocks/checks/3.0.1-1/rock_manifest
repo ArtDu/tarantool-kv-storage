@@ -1,0 +1,11 @@
+rock_manifest = {
+   ["checks-3.0.1-1.rockspec"] = "70c9cae331d510a35df269a648802c2e",
+   doc = {
+      ["CHANGELOG.md"] = "37b2e7e2612ef4b0afcf96b1d40457f0",
+      LICENSE = "a8222d3c1310f4af0a7d86e11182221f",
+      ["README.md"] = "11ca2f1e470422e7d324a21547d9e930"
+   },
+   lua = {
+      ["checks.lua"] = "3ab996df6e540ef023587925e5bc0d04"
+   }
+}
