@@ -4,10 +4,12 @@ local http_server = require('http.server')
 local json = require('json')
 local log = require('log')
 
-local httpd = http_server.new('127.0.0.1', 8080, {
-    log_requests = true,
-    log_errors = true
-})
+local httpd = http_server.new(
+        os.getenv("SERVER_IP"),
+        os.getenv("SERVER_PORT"), {
+            log_requests = true,
+            log_errors = true
+        })
 local router = http_router.new()
 
 box.cfg {
