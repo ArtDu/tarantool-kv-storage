@@ -47,6 +47,7 @@ class TestLuaServer(unittest.TestCase):
         requests.delete(URL + '/' + data[0]['key'])
         self.assertEqual(requests.post(URL, json=data[0]).status_code, 200)
         self.assertEqual(requests.get(URL + '/' + data[0]['key']).status_code, 200)
+        self.assertEqual(requests.get(URL + '/' + data[0]['key']).text, data[0]['value'])
         self.assertEqual(requests.delete(URL + '/' + data[0]['key']).status_code, 200)
 
     def test_get_not_found(self):
