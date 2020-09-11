@@ -129,7 +129,7 @@ router:route({ method = 'GET', path = '/kv/:key' }, function(req)
         log.info("Error: Key not found, key: " .. key)
         return { status = 404 }
     end
-    val = kv[1][2]
+    val = kv[2]
     log.info("Ok, value:")
     log.info(val)
     return { status = 200, body = val }
@@ -151,4 +151,4 @@ router:route({ method = 'DELETE', path = '/kv/:key' }, function(req)
 end)
 
 httpd:set_router(router)
-httpd:start()
+httpd:start()   
