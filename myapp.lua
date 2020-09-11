@@ -30,86 +30,122 @@ box.once('create', function()
             { type = 'hash', parts = { 1, 'string' } })
 end)
 
-router:route({ method = 'POST', path = '/kv' }, function(req)
-    local is_valid_json, lua_table, key, val
+function isKeyValCorrect(key, val)
+    local ok, err
+    ok, err = pcall(json.decode, val)
+    if key == nil or type(key) ~= 'string' then
+        log.info("Error: key invalid")
+        log.info("Key:")
+        log.info(key)
+        return false
+    elseif not ok or type(val) ~= 'string' then
+        log.info("Error: val invalid")
+        log.info("Val:")
+        log.info(val)
+        log.info(err)
+        return false
+    end
+    return true
+end
 
-    is_valid_json, lua_table = pcall(req.json, req)
-    if is_valid_json then
-        key, val = lua_table['key'], lua_table['value']
-        is_valid_json = pcall(json.decode, val)
-        if not is_valid_json or key == nil or type(key) ~= 'string' then
-            log.info("Error: key or value invalid")
-            return { status = 400 }
+function isJsonPostCorrect(req)
+    local ok, kv, key, val
+
+    ok, kv = pcall(req.json, req)
+    if ok then
+        key, val = kv['key'], kv['value']
+        if not isKeyValCorrect(key, val) then
+            return false
         end
     else
         log.info("Error: body json invalid")
+        log.info(kv)
+        return false
+    end
+    return true, key, val
+end
+
+function isJsonPutCorrect(req)
+    local ok, kv, key, val
+
+    ok, kv = pcall(req.json, req)
+    if ok then
+        key, val = req:stash('key'), kv['value']
+        if not isKeyValCorrect(key, val) then
+            return false
+        end
+    else
+        log.info("Error: body json invalid")
+        return false
+    end
+    return true, key, val
+end
+
+router:route({ method = 'POST', path = '/kv' }, function(req)
+    local ok, key, val = isJsonPostCorrect(req)
+    if not ok then
         return { status = 400 }
     end
 
-    local kv = box.space.dict:select(key)
+    kv = box.space.dict:get(key)
     if kv == nil or #kv == 0 then
         box.space.dict:insert { key, val }
-        log.info("Ok")
+        log.info("Ok, key, val:")
+        log.info(key)
+        log.info(val)
         return { status = 200 }
     else
-        log.info("Error: Key already exist:" .. key)
+        log.info("Error: Key already exist:")
+        log.info(key)
         return { status = 409 }
     end
 end)
 
 router:route({ method = 'PUT', path = '/kv/:key' }, function(req)
-    local is_valid_json, lua_table, key, val
-
-    key = req:stash('key')
-    is_valid_json, lua_table = pcall(req.json, req)
-    if is_valid_json then
-        val = lua_table['value']
-        is_valid_json = pcall(json.decode, val)
-        if not is_valid_json or type(key) ~= 'string' then
-            log.info("Error: key or value invalid")
-            return { status = 400 }
-        end
-    else
-        log.info("Error: body json invalid")
+    local ok, key, val = isJsonPutCorrect(req)
+    if not ok then
         return { status = 400 }
     end
 
-    local kv = box.space.dict:select(key)
+    kv = box.space.dict:get(key)
     if kv == nil or #kv == 0 then
         log.info("Error: Key not found")
         return { status = 404 }
     else
         box.space.dict:update(key, { { '=', 2, val } })
-        log.info("Ok")
+        log.info("Ok, new value:")
         log.info(val)
         return { status = 200 }
     end
 end)
 
 router:route({ method = 'GET', path = '/kv/:key' }, function(req)
-    local key = req:stash('key')
-    local kv = box.space.dict:select(key)
-    log.info(kv)
+    local key, val, kv
+    key = req:stash('key')
+
+    kv = box.space.dict:get(key)
     if kv == nil or #kv == 0 then
         log.info("Error: Key not found, key: " .. key)
         return { status = 404 }
     end
-    local val = kv[1][2]
+    val = kv[1][2]
     log.info("Ok, value:")
     log.info(val)
     return { status = 200, body = val }
 end)
 
 router:route({ method = 'DELETE', path = '/kv/:key' }, function(req)
-    local key = req:stash('key')
-    local kv = box.space.dict:select(key)
-    log.info(kv)
+    local key, kv
+
+    key = req:stash('key')
+    kv = box.space.dict:get(key)
     if kv == nil or #kv == 0 then
         log.info("Error: Key not found, key: " .. key)
         return { status = 404 }
     end
+
     box.space.dict:delete(key)
-    log.info("Ok")
+    log.info("Ok, key: " .. key)
     return { status = 200 }
 end)
 

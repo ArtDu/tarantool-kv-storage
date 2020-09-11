@@ -1,12 +1,15 @@
 ### tarantool web kv storage daemon
 
-For launch you need:
-```bash
-export LISTEN_URI=3301
-export SERVER_IP=127.0.0.1
-export SERVER_PORT=8080
-tarantool myapp.lua
-```
+For launch you need:  
+* [tarantool-http](https://github.com/tarantool/http)
+
+* configure env values:
+    ```bash
+    export LISTEN_URI=3301
+    export SERVER_IP=127.0.0.1
+    export SERVER_PORT=8080
+    tarantool myapp.lua
+    ```
 
 
 1) POST /kv body: {key: "test", "value": {SOME ARBITRARY JSON}} 
