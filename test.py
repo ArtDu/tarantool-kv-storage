@@ -9,7 +9,7 @@ SERVER_PORT = os.getenv('SERVER_PORT')
 URL = 'http://' + SERVER_IP + ':' + SERVER_PORT + '/kv'
 
 
-class TestStringMethods(unittest.TestCase):
+class TestLuaServer(unittest.TestCase):
 
     def test_post_success(self):
         data = [
